@@ -5,8 +5,8 @@ const loop = {
 	frameId: 0,
 	updateCallbackFunc: undefined,
 	drawCallbackFunc: undefined, 
-	setSimulationDepth: function(fps){
-		this.step = 1 / fps;
+	setSimulationDepth: function(depth){
+		this.step = 1 / depth;
 	},
 	setUpdateCallback: function(updateFn){
 		this.updateCallbackFunc = updateFn;
