@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Game Loop</title>
+
+
+	<style type="text/css">
+		body{
+			background: #000;
+		}
+
+		canvas{
+			background: #fff;
+		}
+	</style>
+</head>
+<body>
+
+	<canvas width="700" height="480" id="myCanvas"></canvas>
+
+	<script type="text/javascript">
+	  const loop = {
+			step: 1 / 60,
+			accumulator: 0,
+			lastTime: 0,
+			frameId: 0,
+			updateCallbackFunc: undefined,
+			drawCallbackFunc: undefined, 
+			setSimulationDepth: function(fps){
+				this.step = 1 / fps;
+			},
+			setUpdateCallback: function(updateFn){
+				this.updateCallbackFunc = updateFn;
+			},
+			setDrawCallback: function(drawFn){
+				this.drawCallbackFunc = drawFn;
+			},
+			init: function(){
+				if (this.updateCallbackFunc === undefined){
+					console.error("No update callback has been assigned yet!");
+					return false;
+				}
+				if (this.drawCallbackFunc === undefined){
+					console.error("No draw callback has been assigned yet!");
+					return false;
+				}
+				this.frameId = requestAnimationFrame(this.kickStart.bind(this));
+			},
+			quit: function(){
+				cancelAnimationFrame(this.frameId);
+			},
+			kickStart: function(elapsedTime){
+				this.lastTime = elapsedTime;
+				this.frameId = requestAnimationFrame(this.callback.bind(this));
+			},
+			callback: function(elapsedTime){
+				this.frameId = requestAnimationFrame(this.callback.bind(this));
+				const deltaTime = (elapsedTime - this.lastTime) / 1000;
+				this.accumulator += deltaTime;
+				while(this.accumulator > this.step){
+					this.updateCallbackFunc(this.step);
+					this.accumulator -= this.step;
+				}
+				this.drawCallbackFunc();
+				this.lastTime = elapsedTime;
+			},
+		}
+
+		const canvas = document.getElementById('myCanvas');
+		const ctx    = canvas.getContext('2d');
+
+		let x = 0;
+		let y = 0;
+		const width = 40;
+		const height = 40;
+		const speed = 50;
+
+		let fps = 0;
+		let deltaCount = 0;
+		function update(deltaTime){
+
+			x += speed * deltaTime;
+			y += speed * deltaTime;
+
+			if (x + width >= canvas.width || y + height >= canvas.height){
+				loop.quit();
+			}
+			
+			deltaCount += deltaTime;
+			fps++;
+			if (deltaCount >= 1.0){
+				console.log(fps);
+				deltaCount = 0;
+				fps = 0;
+			}
+		}
+
+		function draw(){
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			ctx.fillStyle = '#ff0000';
+			ctx.fillRect(x, y, width, height);
+		}
+
+    //loop.setSimulationDepth(120);
+		loop.setUpdateCallback(update);
+		loop.setDrawCallback(draw);
+		loop.init();
+	</script>
+</body>
+</html>
